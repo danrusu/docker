@@ -18,7 +18,7 @@ COPY $LOCAL_PFX_FOLDER ./
 
 # 2. Covert legacy to modern .pfx:
 # docker build -t openssl --build-arg LOCAL_PFX_FOLDER=localCertificatesFolderName -f Dockerfile_openssl .
-# docker run -it -v //$(pwd)/pfx:/home/pfx openssl
+# docker run --rm -it -v //$(pwd)/pfx:/home/pfx openssl
 # > apt-get install openssl 
 # > openssl pkcs12 -in oldPfxFile.pfx -nodes -legacy | openssl pkcs12 -export -out newPfxFile.pfx
 # > cp newPfxFile.pfx /home/pfx/newPfxFile.pfx
