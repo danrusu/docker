@@ -1,0 +1,58 @@
+ARG IMAGE=ubuntu:latest
+FROM $IMAGE
+
+USER root
+
+# needed for installing "packagekit-gtk3-module" without prompting for user input 
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Moscow
+
+ARG APT_GET_FLAGS="-q=2 -y"
+RUN apt-get update $APT_GET_FLAGS && apt-get install $APT_GET_FLAGS \
+  packagekit-gtk3-module \
+  xvfb \
+  wget \
+  curl \
+  bzip2 
+
+# Download node installation and install
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
+  && curl -sL https://deb.nodesource.com/setup_18.x | bash 2>/dev/null \    
+  && apt-get update $APT_GET_FLAGS \
+  && apt-get install $APT_GET_FLAGS nodejs 
+
+# Chrome Browser
+ARG CHROME_VERSION="google-chrome-beta"
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+  && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \ 
+  && apt-get update $APT_GET_FLAGS \ 
+  && apt-get $APT_GET_FLAGS install ${CHROME_VERSION:-google-chrome-stable} \
+  && rm /etc/apt/sources.list.d/google-chrome.list
+
+# Chrome Launch Script
+COPY chrome_launcher.sh /opt/google/chrome/google-chrome
+RUN chmod +x /opt/google/chrome/google-chrome
+
+# Firefox Browser
+ARG FIREFOX_VERSION=90.0
+RUN apt-get update -qqy \
+  && apt-get $APT_GET_FLAGS install firefox \
+  && apt-get $APT_GET_FLAGS purge firefox \
+  && FIREFOX_DOWNLOAD_URL=$(echo "https://download.mozilla.org/?product=firefox-$FIREFOX_VERSION&os=linux64&lang=en-US") \
+  && wget -q -O /tmp/firefox.tar.bz2 $FIREFOX_DOWNLOAD_URL \
+  && tar -C /opt -xjf /tmp/firefox.tar.bz2 \
+  && rm /tmp/firefox.tar.bz2 \
+  && mv /opt/firefox /opt/firefox-$FIREFOX_VERSION \
+  && ln -fs /opt/firefox-$FIREFOX_VERSION/firefox /usr/bin/firefox
+
+# Cleanup
+RUN rm -rf /var/lib/apt/lists/*
+
+# Set up project
+WORKDIR /opt/test
+
+# copy Node.js project in docker if needed
+# COPY . ./
+# RUN npm install
+
+ENTRYPOINT [ "/bin/bash" ]
