@@ -6,21 +6,9 @@ RUN apt-get install openssl
 # Cleanup
 RUN rm -rf /var/lib/apt/lists/*
  
-# Set up project
 WORKDIR /opt/pfx
 
 ARG LOCAL_PFX_FOLDER=./certificates
 COPY $LOCAL_PFX_FOLDER ./
-
-# 1. Certificate info:
-# openssl pkcs12 -in pfxFile.pfx --noout -info
-# openssl pkcs12 -in pfxFile.pfx --noout -info -legacy
-
-# 2. Covert legacy to modern .pfx:
-# docker build -t openssl --build-arg LOCAL_PFX_FOLDER=localCertificatesFolderName -f Dockerfile_openssl .
-# docker run --rm -it -v //$(pwd)/pfx:/home/pfx openssl
-# > apt-get install openssl 
-# > openssl pkcs12 -in oldPfxFile.pfx -nodes -legacy | openssl pkcs12 -export -out newPfxFile.pfx
-# > cp newPfxFile.pfx /home/pfx/newPfxFile.pfx
 
 ENTRYPOINT [ "/bin/bash" ]
